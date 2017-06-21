@@ -9,13 +9,13 @@
 /*
  * This file defines classes for doing temporal layers with VP8.
  */
-#ifndef MODULES_VIDEO_CODING_CODECS_VP8_DEFAULT_TEMPORAL_LAYERS_H_
-#define MODULES_VIDEO_CODING_CODECS_VP8_DEFAULT_TEMPORAL_LAYERS_H_
+#ifndef MODULES_VIDEO_CODING_UTILITY_DEFAULT_TEMPORAL_LAYERS_H_
+#define MODULES_VIDEO_CODING_UTILITY_DEFAULT_TEMPORAL_LAYERS_H_
 
 #include <set>
 #include <vector>
 
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 
 #include "api/optional.h"
 
@@ -86,4 +86,4 @@ class DefaultTemporalLayersChecker : public TemporalLayersChecker {
 };
 
 }  // namespace webrtc
-#endif  // MODULES_VIDEO_CODING_CODECS_VP8_DEFAULT_TEMPORAL_LAYERS_H_
+#endif  // MODULES_VIDEO_CODING_UTILITY_DEFAULT_TEMPORAL_LAYERS_H_

@@ -13,11 +13,11 @@
 #include "api/video_codecs/video_encoder.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "common_video/include/video_bitrate_allocator.h"
-#include "modules/video_coding/codecs/vp8/screenshare_layers.h"
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/include/video_coding_defines.h"
 #include "modules/video_coding/utility/default_video_bitrate_allocator.h"
+#include "modules/video_coding/utility/screenshare_layers.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/basictypes.h"
 #include "rtc_base/logging.h"
 #include "system_wrappers/include/clock.h"
@@ -54,7 +54,9 @@ VideoCodecInitializer::CreateBitrateAllocator(const VideoCodec& codec) {
   std::unique_ptr<VideoBitrateAllocator> rate_allocator;
 
   switch (codec.codecType) {
-    case kVideoCodecVP8: {
+    case kVideoCodecVP8:
+    // Intentionally fall-through
+    case kVideoCodecH264: {
       // Set up default VP8 temporal layer factory, if not provided.
       rate_allocator.reset(new SimulcastRateAllocator(codec));
     } break;

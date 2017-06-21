@@ -17,23 +17,25 @@
 #include "common_video/include/video_frame_buffer.h"
 #include "media/engine/internalencoderfactory.h"
 #include "media/engine/simulcast_encoder_adapter.h"
-#include "modules/video_coding/codecs/vp8/simulcast_test_utility.h"
+#include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/include/video_codec_interface.h"
+#include "modules/video_coding/utility/simulcast_test_utility.h"
 #include "rtc_base/ptr_util.h"
 #include "test/gmock.h"
 
 namespace webrtc {
 namespace testing {
 
-class TestSimulcastEncoderAdapter : public TestVp8Simulcast {
+class TestSimulcastEncoderAdapter : public TestSimulcast {
  public:
-  TestSimulcastEncoderAdapter() : factory_(new InternalEncoderFactory()) {}
+  TestSimulcastEncoderAdapter()
+      : TestSimulcast(kVideoCodecVP8), factory_(new InternalEncoderFactory()) {}
 
  protected:
-  std::unique_ptr<VP8Encoder> CreateEncoder() override {
+  std::unique_ptr<VideoEncoder> CreateEncoder() override {
     return rtc::MakeUnique<SimulcastEncoderAdapter>(factory_.get());
   }
-  std::unique_ptr<VP8Decoder> CreateDecoder() override {
+  std::unique_ptr<VideoDecoder> CreateDecoder() override {
     return VP8Decoder::Create();
   }
 
@@ -42,59 +44,59 @@ class TestSimulcastEncoderAdapter : public TestVp8Simulcast {
 };
 
 TEST_F(TestSimulcastEncoderAdapter, TestKeyFrameRequestsOnAllStreams) {
-  TestVp8Simulcast::TestKeyFrameRequestsOnAllStreams();
+  TestSimulcast::TestKeyFrameRequestsOnAllStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestPaddingAllStreams) {
-  TestVp8Simulcast::TestPaddingAllStreams();
+  TestSimulcast::TestPaddingAllStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestPaddingTwoStreams) {
-  TestVp8Simulcast::TestPaddingTwoStreams();
+  TestSimulcast::TestPaddingTwoStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestPaddingTwoStreamsOneMaxedOut) {
-  TestVp8Simulcast::TestPaddingTwoStreamsOneMaxedOut();
+  TestSimulcast::TestPaddingTwoStreamsOneMaxedOut();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestPaddingOneStream) {
-  TestVp8Simulcast::TestPaddingOneStream();
+  TestSimulcast::TestPaddingOneStream();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestPaddingOneStreamTwoMaxedOut) {
-  TestVp8Simulcast::TestPaddingOneStreamTwoMaxedOut();
+  TestSimulcast::TestPaddingOneStreamTwoMaxedOut();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestSendAllStreams) {
-  TestVp8Simulcast::TestSendAllStreams();
+  TestSimulcast::TestSendAllStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestDisablingStreams) {
-  TestVp8Simulcast::TestDisablingStreams();
+  TestSimulcast::TestDisablingStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestActiveStreams) {
-  TestVp8Simulcast::TestActiveStreams();
+  TestSimulcast::TestActiveStreams();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestSwitchingToOneStream) {
-  TestVp8Simulcast::TestSwitchingToOneStream();
+  TestSimulcast::TestSwitchingToOneStream();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestSwitchingToOneOddStream) {
-  TestVp8Simulcast::TestSwitchingToOneOddStream();
+  TestSimulcast::TestSwitchingToOneOddStream();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestStrideEncodeDecode) {
-  TestVp8Simulcast::TestStrideEncodeDecode();
+  TestSimulcast::TestStrideEncodeDecode();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestSaptioTemporalLayers333PatternEncoder) {
-  TestVp8Simulcast::TestSaptioTemporalLayers333PatternEncoder();
+  TestSimulcast::TestSaptioTemporalLayers333PatternEncoder();
 }
 
 TEST_F(TestSimulcastEncoderAdapter, TestSpatioTemporalLayers321PatternEncoder) {
-  TestVp8Simulcast::TestSpatioTemporalLayers321PatternEncoder();
+  TestSimulcast::TestSpatioTemporalLayers321PatternEncoder();
 }
 
 class MockVideoEncoder;
@@ -250,7 +252,7 @@ class TestSimulcastEncoderAdapterFakeHelper {
 
   // Can only be called once as the SimulcastEncoderAdapter will take the
   // ownership of |factory_|.
-  VP8Encoder* CreateMockEncoderAdapter() {
+  VideoEncoder* CreateMockEncoderAdapter() {
     return new SimulcastEncoderAdapter(factory_.get());
   }
 
@@ -311,8 +313,9 @@ class TestSimulcastEncoderAdapterFake : public ::testing::Test,
   }
 
   void SetupCodec() {
-    TestVp8Simulcast::DefaultSettings(
-        &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+    TestSimulcast::DefaultSettings(
+        &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+        kVideoCodecVP8);
     rate_allocator_.reset(new SimulcastRateAllocator(codec_));
     EXPECT_EQ(0, adapter_->InitEncode(&codec_, 1, 1200));
     adapter_->RegisterEncodeCompleteCallback(this);
@@ -387,7 +390,7 @@ class TestSimulcastEncoderAdapterFake : public ::testing::Test,
 
  protected:
   std::unique_ptr<TestSimulcastEncoderAdapterFakeHelper> helper_;
-  std::unique_ptr<VP8Encoder> adapter_;
+  std::unique_ptr<VideoEncoder> adapter_;
   VideoCodec codec_;
   int last_encoded_image_width_;
   int last_encoded_image_height_;
@@ -460,8 +463,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, EncodedCallbackForDifferentEncoders) {
 // with the lowest stream.
 TEST_F(TestSimulcastEncoderAdapterFake, ReusesEncodersInOrder) {
   // Set up common settings for three streams.
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   rate_allocator_.reset(new SimulcastRateAllocator(codec_));
   adapter_->RegisterEncodeCompleteCallback(this);
 
@@ -658,8 +662,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, ReinitDoesNotReorderFrameSimulcastIdx) {
 }
 
 TEST_F(TestSimulcastEncoderAdapterFake, SupportsNativeHandleForSingleStreams) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.numberOfSimulcastStreams = 1;
   EXPECT_EQ(0, adapter_->InitEncode(&codec_, 1, 1200));
   adapter_->RegisterEncodeCompleteCallback(this);
@@ -671,8 +676,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, SupportsNativeHandleForSingleStreams) {
 }
 
 TEST_F(TestSimulcastEncoderAdapterFake, SetRatesUnderMinBitrate) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.minBitrate = 50;
   codec_.numberOfSimulcastStreams = 1;
   EXPECT_EQ(0, adapter_->InitEncode(&codec_, 1, 1200));
@@ -700,8 +706,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, SetRatesUnderMinBitrate) {
 
 TEST_F(TestSimulcastEncoderAdapterFake, SupportsImplementationName) {
   EXPECT_STREQ("SimulcastEncoderAdapter", adapter_->ImplementationName());
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   std::vector<const char*> encoder_names;
   encoder_names.push_back("codec1");
   encoder_names.push_back("codec2");
@@ -722,8 +729,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, SupportsImplementationName) {
 
 TEST_F(TestSimulcastEncoderAdapterFake,
        SupportsNativeHandleForMultipleStreams) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.numberOfSimulcastStreams = 3;
   EXPECT_EQ(0, adapter_->InitEncode(&codec_, 1, 1200));
   adapter_->RegisterEncodeCompleteCallback(this);
@@ -759,8 +767,9 @@ class FakeNativeBuffer : public VideoFrameBuffer {
 
 TEST_F(TestSimulcastEncoderAdapterFake,
        NativeHandleForwardingForMultipleStreams) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.numberOfSimulcastStreams = 3;
   // High start bitrate, so all streams are enabled.
   codec_.startBitrate = 3000;
@@ -783,8 +792,9 @@ TEST_F(TestSimulcastEncoderAdapterFake,
 }
 
 TEST_F(TestSimulcastEncoderAdapterFake, TestFailureReturnCodesFromEncodeCalls) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.numberOfSimulcastStreams = 3;
   EXPECT_EQ(0, adapter_->InitEncode(&codec_, 1, 1200));
   adapter_->RegisterEncodeCompleteCallback(this);
@@ -804,8 +814,9 @@ TEST_F(TestSimulcastEncoderAdapterFake, TestFailureReturnCodesFromEncodeCalls) {
 }
 
 TEST_F(TestSimulcastEncoderAdapterFake, TestInitFailureCleansUpEncoders) {
-  TestVp8Simulcast::DefaultSettings(
-      &codec_, static_cast<const int*>(kTestTemporalLayerProfile));
+  TestSimulcast::DefaultSettings(
+      &codec_, static_cast<const int*>(kTestTemporalLayerProfile),
+      kVideoCodecVP8);
   codec_.numberOfSimulcastStreams = 3;
   helper_->factory()->set_init_encode_return_value(
       WEBRTC_VIDEO_CODEC_FALLBACK_SOFTWARE);

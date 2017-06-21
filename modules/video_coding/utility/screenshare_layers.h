@@ -6,13 +6,13 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-#ifndef MODULES_VIDEO_CODING_CODECS_VP8_SCREENSHARE_LAYERS_H_
-#define MODULES_VIDEO_CODING_CODECS_VP8_SCREENSHARE_LAYERS_H_
+#ifndef MODULES_VIDEO_CODING_UTILITY_SCREENSHARE_LAYERS_H_
+#define MODULES_VIDEO_CODING_UTILITY_SCREENSHARE_LAYERS_H_
 
 #include <vector>
 
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/utility/frame_dropper.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/rate_statistics.h"
 #include "rtc_base/timeutils.h"
 #include "typedefs.h"  // NOLINT(build/include)
@@ -37,7 +37,7 @@ class ScreenshareLayers : public TemporalLayers {
   // and/or update the reference buffers.
   TemporalLayers::FrameConfig UpdateLayerConfig(uint32_t timestamp) override;
 
-  // New target bitrate, per temporal layer.
+  // Update state based on new bitrate target and incoming framerate.
   void OnRatesUpdated(const std::vector<uint32_t>& bitrates_bps,
                       int framerate_fps) override;
 
@@ -123,4 +123,4 @@ class ScreenshareLayers : public TemporalLayers {
 };
 }  // namespace webrtc
 
-#endif  // MODULES_VIDEO_CODING_CODECS_VP8_SCREENSHARE_LAYERS_H_
+#endif  // MODULES_VIDEO_CODING_UTILITY_SCREENSHARE_LAYERS_H_

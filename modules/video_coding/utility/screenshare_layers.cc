@@ -7,7 +7,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/screenshare_layers.h"
+#include "modules/video_coding/utility/screenshare_layers.h"
 
 #include <stdlib.h>
 

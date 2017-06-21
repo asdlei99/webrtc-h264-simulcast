@@ -9,14 +9,14 @@
 /*
  * This file defines the interface for doing temporal layers with VP8.
  */
-#ifndef MODULES_VIDEO_CODING_CODECS_VP8_TEMPORAL_LAYERS_H_
-#define MODULES_VIDEO_CODING_CODECS_VP8_TEMPORAL_LAYERS_H_
+#ifndef MODULES_VIDEO_CODING_UTILITY_TEMPORAL_LAYERS_H_
+#define MODULES_VIDEO_CODING_UTILITY_TEMPORAL_LAYERS_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "common_types.h"  // NOLINT(build/include)
-#include "typedefs.h"  // NOLINT(build/include)
+#include "typedefs.h"      // NOLINT(build/include)
 
 #define VP8_TS_MAX_PERIODICITY 16
 #define VP8_TS_MAX_LAYERS 5
@@ -135,7 +135,6 @@ class TemporalLayers {
   virtual uint8_t Tl0PicIdx() const = 0;
 };
 
-// TODO(webrtc:9012): Remove TemporalLayersFactory type and field once all
 // upstream usage is gone.
 class TemporalLayersFactory {
  public:
@@ -143,10 +142,6 @@ class TemporalLayersFactory {
   virtual ~TemporalLayersFactory() = default;
 };
 
-
-// Used only inside RTC_DCHECK(). It checks correctness of temporal layers
-// dependencies and sync bits. The only method of this class is called after
-// each UpdateLayersConfig() of a corresponding TemporalLayers class.
 class TemporalLayersChecker {
  public:
   TemporalLayersChecker(int num_temporal_layers, uint8_t initial_tl0_pic_idx);
@@ -180,4 +175,4 @@ class TemporalLayersChecker {
 };
 
 }  // namespace webrtc
-#endif  // MODULES_VIDEO_CODING_CODECS_VP8_TEMPORAL_LAYERS_H_
+#endif  // MODULES_VIDEO_CODING_UTILITY_TEMPORAL_LAYERS_H_

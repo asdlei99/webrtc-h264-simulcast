@@ -206,6 +206,8 @@ rtc_source_set("codec_globals_headers") {
 rtc_source_set("video_coding_utility") {
   visibility = [ "*" ]
   sources = [
+    "utility/default_temporal_layers.cc",
+    "utility/default_temporal_layers.h",
     "utility/default_video_bitrate_allocator.cc",
     "utility/default_video_bitrate_allocator.h",
     "utility/frame_dropper.cc",
@@ -216,6 +218,12 @@ rtc_source_set("video_coding_utility") {
     "utility/moving_average.h",
     "utility/quality_scaler.cc",
     "utility/quality_scaler.h",
+    "utility/screenshare_layers.cc",
+    "utility/screenshare_layers.h",
+    "utility/simulcast_rate_allocator.cc",
+    "utility/simulcast_rate_allocator.h",
+    "utility/temporal_layers.cc",
+    "utility/temporal_layers.h",
     "utility/vp8_header_parser.cc",
     "utility/vp8_header_parser.h",
     "utility/vp9_uncompressed_header_parser.cc",
@@ -359,16 +367,7 @@ rtc_static_library("webrtc_multiplex") {
 rtc_static_library("webrtc_vp8_helpers") {
   visibility = [ "*" ]
   sources = [
-    "codecs/vp8/default_temporal_layers.cc",
-    "codecs/vp8/default_temporal_layers.h",
     "codecs/vp8/include/vp8.h",
-    "codecs/vp8/include/vp8_common_types.h",
-    "codecs/vp8/screenshare_layers.cc",
-    "codecs/vp8/screenshare_layers.h",
-    "codecs/vp8/simulcast_rate_allocator.cc",
-    "codecs/vp8/simulcast_rate_allocator.h",
-    "codecs/vp8/temporal_layers.cc",
-    "codecs/vp8/temporal_layers.h",
   ]
 
   # TODO(jschuh): Bug 1348: fix this warning.
@@ -404,7 +403,6 @@ rtc_static_library("webrtc_vp8") {
   visibility = [ "*" ]
   sources = [
     "codecs/vp8/include/vp8.h",
-    "codecs/vp8/include/vp8_common_types.h",
     "codecs/vp8/libvpx_vp8_decoder.cc",
     "codecs/vp8/libvpx_vp8_decoder.h",
     "codecs/vp8/libvpx_vp8_encoder.cc",
@@ -532,7 +530,7 @@ if (rtc_include_tests) {
   rtc_source_set("simulcast_test_utility") {
     testonly = true
     sources = [
-      "codecs/vp8/simulcast_test_utility.h",
+      "utility/simulcast_test_utility.h",
     ]
 
     if (!build_with_chromium && is_clang) {
@@ -702,12 +700,11 @@ if (rtc_include_tests) {
     testonly = true
 
     sources = [
+      "codecs/h264/h264_simulcast_unittest.cc",
       "codecs/test/stats_unittest.cc",
       "codecs/test/test_config_unittest.cc",
       "codecs/test/videoprocessor_unittest.cc",
-      "codecs/vp8/default_temporal_layers_unittest.cc",
-      "codecs/vp8/screenshare_layers_unittest.cc",
-      "codecs/vp8/simulcast_unittest.cc",
+      "codecs/vp8/vp8_simulcast_unittest.cc",
       "decoding_state_unittest.cc",
       "fec_controller_unittest.cc",
       "frame_buffer2_unittest.cc",
@@ -726,13 +723,16 @@ if (rtc_include_tests) {
       "test/stream_generator.h",
       "test/test_util.h",
       "timing_unittest.cc",
+      "utility/default_temporal_layers_unittest.cc",
       "utility/default_video_bitrate_allocator_unittest.cc",
       "utility/frame_dropper_unittest.cc",
       "utility/ivf_file_writer_unittest.cc",
       "utility/mock/mock_frame_dropper.h",
       "utility/moving_average_unittest.cc",
       "utility/quality_scaler_unittest.cc",
+      "utility/screenshare_layers_unittest.cc",
       "utility/simulcast_rate_allocator_unittest.cc",
+      "utility/simulcast_unittest.h",
       "video_codec_initializer_unittest.cc",
       "video_packet_buffer_unittest.cc",
       "video_receiver_unittest.cc",

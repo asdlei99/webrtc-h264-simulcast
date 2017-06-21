@@ -44,8 +44,8 @@ struct CodecSpecificInfoVP9 {
   int16_t picture_id;  // Negative value to skip pictureId.
 
   bool first_frame_in_picture;  // First frame, increment picture_id.
-  bool inter_pic_predicted;  // This layer frame is dependent on previously
-                             // coded frame(s).
+  bool inter_pic_predicted;     // This layer frame is dependent on previously
+                                // coded frame(s).
   bool flexible_mode;
   bool ss_data_available;
 
@@ -76,6 +76,7 @@ struct CodecSpecificInfoGeneric {
 
 struct CodecSpecificInfoH264 {
   H264PacketizationMode packetization_mode;
+  uint8_t simulcastIdx;
 };
 
 union CodecSpecificInfoUnion {

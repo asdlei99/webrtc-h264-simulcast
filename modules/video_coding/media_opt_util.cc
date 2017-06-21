@@ -18,9 +18,8 @@
 #include <limits>
 
 #include "modules/include/module_common_types.h"
-#include "modules/video_coding/codecs/vp8/include/vp8_common_types.h"
-#include "modules/video_coding/include/video_coding_defines.h"
 #include "modules/video_coding/fec_rate_table.h"
+#include "modules/video_coding/include/video_coding_defines.h"
 #include "modules/video_coding/nack_fec_tables.h"
 
 namespace webrtc {
@@ -285,9 +284,8 @@ bool VCMFecMethod::ProtectionFactor(const VCMProtectionParameters* parameters) {
   // Average number of packets per frame (source and fec):
   const uint8_t avgTotPackets = static_cast<uint8_t>(
       std::min(static_cast<float>(std::numeric_limits<uint8_t>::max()),
-               1.5f +
-                   static_cast<float>(bitRatePerFrame) * 1000.0f /
-                       static_cast<float>(8.0 * _maxPayloadSize)));
+               1.5f + static_cast<float>(bitRatePerFrame) * 1000.0f /
+                          static_cast<float>(8.0 * _maxPayloadSize)));
 
   // FEC rate parameters: for P and I frame
   uint8_t codeRateDelta = 0;
@@ -401,8 +399,7 @@ bool VCMFecMethod::ProtectionFactor(const VCMProtectionParameters* parameters) {
 int VCMFecMethod::BitsPerFrame(const VCMProtectionParameters* parameters) {
   // When temporal layers are available FEC will only be applied on the base
   // layer.
-  const float bitRateRatio =
-      kVp8LayerRateAlloction[parameters->numLayers - 1][0];
+  const float bitRateRatio = kLayerRateAlloction[parameters->numLayers - 1][0];
   float frameRateRatio = powf(1 / 2.0, parameters->numLayers - 1);
   float bitRate = parameters->bitRate * bitRateRatio;
   float frameRate = parameters->frameRate * frameRateRatio;

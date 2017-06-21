@@ -25,7 +25,7 @@
 #include "modules/rtp_rtcp/source/rtp_utility.h"
 #include "modules/video_coding/codecs/h264/include/h264.h"
 #include "modules/video_coding/codecs/multiplex/include/multiplex_encoder_adapter.h"
-#include "modules/video_coding/codecs/vp8/include/vp8_common_types.h"
+#include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/codecs/vp9/include/vp9.h"
 #include "rtc_base/cpu_time.h"
 #include "rtc_base/flags.h"
@@ -607,13 +607,11 @@ class VideoAnalyzer : public PacketReceiver,
 
     rtc::CritScope crit(&comparison_lock_);
     if (comparisons_.size() < kMaxComparisons) {
-      comparisons_.push_back(FrameComparison(reference, render, dropped,
-                                             reference.ntp_time_ms(),
-                                             send_time_ms, recv_time_ms,
-                                             render_time_ms, encoded_size));
+      comparisons_.push_back(FrameComparison(
+          reference, render, dropped, reference.ntp_time_ms(), send_time_ms,
+          recv_time_ms, render_time_ms, encoded_size));
     } else {
-      comparisons_.push_back(FrameComparison(dropped,
-                                             reference.ntp_time_ms(),
+      comparisons_.push_back(FrameComparison(dropped, reference.ntp_time_ms(),
                                              send_time_ms, recv_time_ms,
                                              render_time_ms, encoded_size));
     }
@@ -763,7 +761,7 @@ class VideoAnalyzer : public PacketReceiver,
 
     if (worst_frame_) {
       test::PrintResult("min_psnr", "", test_label_.c_str(), worst_frame_->psnr,
-                  "dB", false);
+                        "dB", false);
     }
 
     if (receive_stream_ != nullptr) {
@@ -771,14 +769,14 @@ class VideoAnalyzer : public PacketReceiver,
     }
 
     test::PrintResult("dropped_frames", "", test_label_.c_str(),
-                  dropped_frames_, "frames", false);
+                      dropped_frames_, "frames", false);
     test::PrintResult("cpu_usage", "", test_label_.c_str(),
                       GetCpuUsagePercent(), "%", false);
 
 #if defined(WEBRTC_WIN)
-      // On Linux and Mac in Resident Set some unused pages may be counted.
-      // Therefore this metric will depend on order in which tests are run and
-      // will be flaky.
+    // On Linux and Mac in Resident Set some unused pages may be counted.
+    // Therefore this metric will depend on order in which tests are run and
+    // will be flaky.
     PrintResult("memory_usage", memory_usage_, " bytes");
 #endif
 
@@ -792,8 +790,8 @@ class VideoAnalyzer : public PacketReceiver,
           rtc::Pathname(output_dir, test_label_ + ".jpg").pathname();
       RTC_LOG(LS_INFO) << "Saving worst frame to " << output_path;
       test::JpegFrameWriter frame_writer(output_path);
-      RTC_CHECK(frame_writer.WriteFrame(worst_frame_->frame,
-                                        100 /*best quality*/));
+      RTC_CHECK(
+          frame_writer.WriteFrame(worst_frame_->frame, 100 /*best quality*/));
     }
 
     //  Disable quality check for quick test, as quality checks may fail
@@ -902,8 +900,9 @@ class VideoAnalyzer : public PacketReceiver,
             "ssim "
             "encode_time_ms\n");
     for (const Sample& sample : samples_) {
-      fprintf(out, "%d %" PRId64 " %" PRId64 " %" PRId64 " %" PRId64 " %" PRIuS
-                   " %lf %lf\n",
+      fprintf(out,
+              "%d %" PRId64 " %" PRId64 " %" PRId64 " %" PRId64 " %" PRIuS
+              " %lf %lf\n",
               sample.dropped, sample.input_time_ms, sample.send_time_ms,
               sample.recv_time_ms, sample.render_time_ms,
               sample.encoded_frame_size, sample.psnr, sample.ssim);
@@ -2068,9 +2067,10 @@ void VideoQualityTest::SetupAudio(Transport* transport,
   }
   audio_send_config_.send_codec_spec = AudioSendStream::Config::SendCodecSpec(
       kAudioSendPayloadType,
-      {"OPUS", 48000, 2,
-       {{"usedtx", (params_.audio.dtx ? "1" : "0")},
-         {"stereo", "1"}}});
+      {"OPUS",
+       48000,
+       2,
+       {{"usedtx", (params_.audio.dtx ? "1" : "0")}, {"stereo", "1"}}});
   audio_send_config_.encoder_factory = encoder_factory_;
   audio_send_stream_ = sender_call_->CreateAudioSendStream(audio_send_config_);
 

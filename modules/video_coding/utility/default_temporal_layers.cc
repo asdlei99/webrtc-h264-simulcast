@@ -7,7 +7,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/default_temporal_layers.h"
+#include "modules/video_coding/utility/default_temporal_layers.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "modules/include/module_common_types.h"
-#include "modules/video_coding/codecs/vp8/include/vp8_common_types.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
@@ -387,8 +386,6 @@ void DefaultTemporalLayers::PopulateCodecSpecific(
   }
 }
 
-// Returns list of temporal dependencies for each frame in the temporal pattern.
-// Values are lists of indecies in the pattern.
 std::vector<std::set<uint8_t>> GetTemporalDependencies(
     int num_temporal_layers) {
   switch (num_temporal_layers) {

@@ -8,7 +8,6 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-
 #include <algorithm>  // std::max
 
 #include "common_types.h"  // NOLINT(build/include)
@@ -47,7 +46,6 @@ VideoSender::VideoSender(Clock* clock,
 
 VideoSender::~VideoSender() {}
 
-// Register the send codec to be used.
 int32_t VideoSender::RegisterSendCodec(const VideoCodec* sendCodec,
                                        uint32_t numberOfCores,
                                        uint32_t maxPayloadSize) {
@@ -137,8 +135,7 @@ void VideoSender::RegisterExternalEncoder(VideoEncoder* externalEncoder,
     }
     return;
   }
-  _codecDataBase.RegisterExternalEncoder(externalEncoder,
-                                         internalSource);
+  _codecDataBase.RegisterExternalEncoder(externalEncoder, internalSource);
 }
 
 EncoderParameters VideoSender::UpdateEncoderParameters(
@@ -291,8 +288,7 @@ int32_t VideoSender::AddVideoFrame(const VideoFrame& videoFrame,
       RTC_LOG(LS_ERROR) << "Frame conversion failed, dropping frame.";
       return VCM_PARAMETER_ERROR;
     }
-    converted_frame = VideoFrame(converted_buffer,
-                                 converted_frame.timestamp(),
+    converted_frame = VideoFrame(converted_buffer, converted_frame.timestamp(),
                                  converted_frame.render_time_ms(),
                                  converted_frame.rotation());
   }

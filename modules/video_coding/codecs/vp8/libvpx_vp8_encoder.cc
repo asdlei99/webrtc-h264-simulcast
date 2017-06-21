@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -8,14 +8,13 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-
 #include <algorithm>
 #include <string>
 #include <vector>
 
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "modules/video_coding/codecs/vp8/libvpx_vp8_encoder.h"
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/ptr_util.h"
 #include "rtc_base/random.h"
@@ -24,13 +23,12 @@
 #include "system_wrappers/include/field_trial.h"
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
-
+// NOTE(ajm): Path provided by gyp.
 namespace webrtc {
 namespace {
 const char kVp8GfBoostFieldTrial[] = "WebRTC-VP8-GfBoost";
 
-// QP is obtained from VP8-bitstream for HW, so the QP corresponds to the
-// bitstream range of [0, 127] and not the user-level range of [0,63].
+// VP8 denoiser states.
 constexpr int kLowVp8QpThreshold = 29;
 constexpr int kHighVp8QpThreshold = 95;
 
@@ -836,8 +834,8 @@ int LibvpxVp8Encoder::Encode(const VideoFrame& frame,
 
   int error = WEBRTC_VIDEO_CODEC_OK;
   int num_tries = 0;
-  // If the first try returns WEBRTC_VIDEO_CODEC_TARGET_BITRATE_OVERSHOOT
-  // the frame must be reencoded with the same parameters again because
+  // Note we must pass 0 for |flags| field in encode call below since they are
+  // set above in |vpx_codec_control| function for each encoder/spatial layer.
   // target bitrate is exceeded and encoder state has been reset.
   while (num_tries == 0 ||
          (num_tries == 1 &&

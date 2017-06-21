@@ -367,7 +367,7 @@ struct AudioDecodingCallStats {
   int decoded_normal;  // Number of calls where audio RTP packet decoded.
   int decoded_plc;     // Number of calls resulted in PLC.
   int decoded_cng;  // Number of calls where comfort noise generated due to DTX.
-  int decoded_plc_cng;  // Number of calls resulted where PLC faded to CNG.
+  int decoded_plc_cng;       // Number of calls resulted where PLC faded to CNG.
   int decoded_muted_output;  // Number of calls returning a muted state output.
 };
 
@@ -400,6 +400,16 @@ enum class VideoType {
 enum { kMaxSimulcastStreams = 4 };
 enum { kMaxSpatialLayers = 5 };
 enum { kMaxTemporalStreams = 4 };
+
+// Ratio allocation between temporal streams:
+// Values as required for the VP8 codec (accumulating).
+static const float
+    kLayerRateAlloction[kMaxSimulcastStreams][kMaxTemporalStreams] = {
+        {1.0f, 1.0f, 1.0f, 1.0f},  // 1 layer
+        {0.6f, 1.0f, 1.0f, 1.0f},  // 2 layers {60%, 40%}
+        {0.4f, 0.6f, 1.0f, 1.0f},  // 3 layers {40%, 20%, 40%}
+        {0.25f, 0.4f, 0.6f, 1.0f}  // 4 layers {25%, 15%, 20%, 40%}
+};
 
 enum VideoCodecComplexity {
   kComplexityNormal = 0,

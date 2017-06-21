@@ -12,9 +12,9 @@
 #include <vector>
 
 #include "modules/video_coding/codecs/vp8/libvpx_vp8_encoder.h"
-#include "modules/video_coding/codecs/vp8/screenshare_layers.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "modules/video_coding/utility/mock/mock_frame_dropper.h"
+#include "modules/video_coding/utility/screenshare_layers.h"
 #include "system_wrappers/include/clock.h"
 #include "system_wrappers/include/metrics.h"
 #include "system_wrappers/include/metrics_default.h"
@@ -137,9 +137,7 @@ class ScreenshareLayerTest : public ::testing::Test {
   // Adds frames until we get one in the specified temporal layer. The last
   // FrameEncoded() call will be omitted and needs to be done by the caller.
   // Returns the flags for the last frame.
-  int SkipUntilTl(int layer) {
-    return SkipUntilTlAndSync(layer, rtc::nullopt);
-  }
+  int SkipUntilTl(int layer) { return SkipUntilTlAndSync(layer, rtc::nullopt); }
 
   // Same as SkipUntilTl, but also waits until the sync bit condition is met.
   int SkipUntilTlAndSync(int layer, rtc::Optional<bool> sync) {

@@ -8,75 +8,79 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/simulcast_test_utility.h"
+#include "modules/video_coding/codecs/vp8/include/vp8.h"
+#include "modules/video_coding/utility/simulcast_test_utility.h"
 
 namespace webrtc {
 namespace testing {
 
-class TestVp8Impl : public TestVp8Simulcast {
+class TestVp8Impl : public TestSimulcast {
+ public:
+  TestVp8Impl() : TestSimulcast(kVideoCodecVP8) {}
+
  protected:
-  std::unique_ptr<VP8Encoder> CreateEncoder() override {
+  std::unique_ptr<VideoEncoder> CreateEncoder() override {
     return VP8Encoder::Create();
   }
-  std::unique_ptr<VP8Decoder> CreateDecoder() override {
+  std::unique_ptr<VideoDecoder> CreateDecoder() override {
     return VP8Decoder::Create();
   }
 };
 
 TEST_F(TestVp8Impl, TestKeyFrameRequestsOnAllStreams) {
-  TestVp8Simulcast::TestKeyFrameRequestsOnAllStreams();
+  TestSimulcast::TestKeyFrameRequestsOnAllStreams();
 }
 
 TEST_F(TestVp8Impl, TestPaddingAllStreams) {
-  TestVp8Simulcast::TestPaddingAllStreams();
+  TestSimulcast::TestPaddingAllStreams();
 }
 
 TEST_F(TestVp8Impl, TestPaddingTwoStreams) {
-  TestVp8Simulcast::TestPaddingTwoStreams();
+  TestSimulcast::TestPaddingTwoStreams();
 }
 
 TEST_F(TestVp8Impl, TestPaddingTwoStreamsOneMaxedOut) {
-  TestVp8Simulcast::TestPaddingTwoStreamsOneMaxedOut();
+  TestSimulcast::TestPaddingTwoStreamsOneMaxedOut();
 }
 
 TEST_F(TestVp8Impl, TestPaddingOneStream) {
-  TestVp8Simulcast::TestPaddingOneStream();
+  TestSimulcast::TestPaddingOneStream();
 }
 
 TEST_F(TestVp8Impl, TestPaddingOneStreamTwoMaxedOut) {
-  TestVp8Simulcast::TestPaddingOneStreamTwoMaxedOut();
+  TestSimulcast::TestPaddingOneStreamTwoMaxedOut();
 }
 
 TEST_F(TestVp8Impl, TestSendAllStreams) {
-  TestVp8Simulcast::TestSendAllStreams();
+  TestSimulcast::TestSendAllStreams();
 }
 
 TEST_F(TestVp8Impl, TestDisablingStreams) {
-  TestVp8Simulcast::TestDisablingStreams();
+  TestSimulcast::TestDisablingStreams();
 }
 
 TEST_F(TestVp8Impl, TestActiveStreams) {
-  TestVp8Simulcast::TestActiveStreams();
+  TestSimulcast::TestActiveStreams();
 }
 
 TEST_F(TestVp8Impl, TestSwitchingToOneStream) {
-  TestVp8Simulcast::TestSwitchingToOneStream();
+  TestSimulcast::TestSwitchingToOneStream();
 }
 
 TEST_F(TestVp8Impl, TestSwitchingToOneOddStream) {
-  TestVp8Simulcast::TestSwitchingToOneOddStream();
+  TestSimulcast::TestSwitchingToOneOddStream();
 }
 
 TEST_F(TestVp8Impl, TestSwitchingToOneSmallStream) {
-  TestVp8Simulcast::TestSwitchingToOneSmallStream();
+  TestSimulcast::TestSwitchingToOneSmallStream();
 }
 
 TEST_F(TestVp8Impl, TestSaptioTemporalLayers333PatternEncoder) {
-  TestVp8Simulcast::TestSaptioTemporalLayers333PatternEncoder();
+  TestSimulcast::TestSaptioTemporalLayers333PatternEncoder();
 }
 
 TEST_F(TestVp8Impl, TestStrideEncodeDecode) {
-  TestVp8Simulcast::TestStrideEncodeDecode();
+  TestSimulcast::TestStrideEncodeDecode();
 }
 }  // namespace testing
 }  // namespace webrtc

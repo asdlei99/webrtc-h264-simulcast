@@ -8,8 +8,8 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#ifndef MODULES_VIDEO_CODING_CODECS_VP8_SIMULCAST_TEST_UTILITY_H_
-#define MODULES_VIDEO_CODING_CODECS_VP8_SIMULCAST_TEST_UTILITY_H_
+#ifndef MODULES_VIDEO_CODING_UTILITY_SIMULCAST_TEST_UTILITY_H_
+#define MODULES_VIDEO_CODING_UTILITY_SIMULCAST_TEST_UTILITY_H_
 
 #include <algorithm>
 #include <map>
@@ -20,11 +20,10 @@
 #include "api/video/video_frame.h"
 #include "common_video/include/video_frame.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "modules/video_coding/codecs/vp8/include/vp8.h"
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/include/mock/mock_video_codec_interface.h"
 #include "modules/video_coding/include/video_coding_defines.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/checks.h"
 #include "test/gtest.h"
 
@@ -61,14 +60,14 @@ enum PlaneType {
   kNumOfPlanes = 3,
 };
 
-class Vp8TestEncodedImageCallback : public EncodedImageCallback {
+class TestEncodedImageCallback : public EncodedImageCallback {
  public:
-  Vp8TestEncodedImageCallback() : picture_id_(-1) {
+  TestEncodedImageCallback() : picture_id_(-1) {
     memset(temporal_layer_, -1, sizeof(temporal_layer_));
     memset(layer_sync_, false, sizeof(layer_sync_));
   }
 
-  ~Vp8TestEncodedImageCallback() {
+  ~TestEncodedImageCallback() {
     delete[] encoded_key_frame_._buffer;
     delete[] encoded_frame_._buffer;
   }
@@ -76,8 +75,16 @@ class Vp8TestEncodedImageCallback : public EncodedImageCallback {
   virtual Result OnEncodedImage(const EncodedImage& encoded_image,
                                 const CodecSpecificInfo* codec_specific_info,
                                 const RTPFragmentationHeader* fragmentation) {
+    uint16_t simulcast_idx = 0;
+    bool is_vp8 = (codec_specific_info->codecType == kVideoCodecVP8);
+    if (is_vp8) {
+      simulcast_idx = codec_specific_info->codecSpecific.VP8.simulcastIdx;
+    } else {
+      simulcast_idx = codec_specific_info->codecSpecific.H264.simulcastIdx;
+    }
+
     // Only store the base layer.
-    if (codec_specific_info->codecSpecific.VP8.simulcastIdx == 0) {
+    if (simulcast_idx == 0) {
       if (encoded_image._frameType == kVideoFrameKey) {
         delete[] encoded_key_frame_._buffer;
         encoded_key_frame_._buffer = new uint8_t[encoded_image._size];
@@ -96,13 +103,16 @@ class Vp8TestEncodedImageCallback : public EncodedImageCallback {
                encoded_image._length);
       }
     }
-    picture_id_ = codec_specific_info->codecSpecific.VP8.pictureId;
-    layer_sync_[codec_specific_info->codecSpecific.VP8.simulcastIdx] =
-        codec_specific_info->codecSpecific.VP8.layerSync;
-    temporal_layer_[codec_specific_info->codecSpecific.VP8.simulcastIdx] =
-        codec_specific_info->codecSpecific.VP8.temporalIdx;
+    if (is_vp8) {
+      picture_id_ = codec_specific_info->codecSpecific.VP8.pictureId;
+      layer_sync_[codec_specific_info->codecSpecific.VP8.simulcastIdx] =
+          codec_specific_info->codecSpecific.VP8.layerSync;
+      temporal_layer_[codec_specific_info->codecSpecific.VP8.simulcastIdx] =
+          codec_specific_info->codecSpecific.VP8.temporalIdx;
+    }
     return Result(Result::OK, encoded_image._timeStamp);
   }
+  // This method only makes sense for VP8.
   void GetLastEncodedFrameInfo(int* picture_id,
                                int* temporal_layer,
                                bool* layer_sync,
@@ -126,9 +136,9 @@ class Vp8TestEncodedImageCallback : public EncodedImageCallback {
   bool layer_sync_[kNumberOfSimulcastStreams];
 };
 
-class Vp8TestDecodedImageCallback : public DecodedImageCallback {
+class TestDecodedImageCallback : public DecodedImageCallback {
  public:
-  Vp8TestDecodedImageCallback() : decoded_frames_(0) {}
+  TestDecodedImageCallback() : decoded_frames_(0) {}
   int32_t Decoded(VideoFrame& decoded_image) override {
     rtc::scoped_refptr<I420BufferInterface> i420_buffer =
         decoded_image.video_frame_buffer()->ToI420();
@@ -159,8 +169,9 @@ class Vp8TestDecodedImageCallback : public DecodedImageCallback {
   int decoded_frames_;
 };
 
-class TestVp8Simulcast : public ::testing::Test {
+class TestSimulcast : public ::testing::Test {
  public:
+  explicit TestSimulcast(VideoCodecType codec_type) : codec_type_(codec_type) {}
   static void SetPlane(uint8_t* data,
                        uint8_t value,
                        int width,
@@ -189,10 +200,11 @@ class TestVp8Simulcast : public ::testing::Test {
   }
 
   static void DefaultSettings(VideoCodec* settings,
-                              const int* temporal_layer_profile) {
+                              const int* temporal_layer_profile,
+                              VideoCodecType codec_type) {
     RTC_CHECK(settings);
     memset(settings, 0, sizeof(VideoCodec));
-    settings->codecType = kVideoCodecVP8;
+    settings->codecType = codec_type;
     // 96 to 127 dynamic payload types for video codecs
     settings->plType = 120;
     settings->startBitrate = 300;
@@ -215,11 +227,16 @@ class TestVp8Simulcast : public ::testing::Test {
     ConfigureStream(kDefaultWidth, kDefaultHeight, kMaxBitrates[2],
                     kMinBitrates[2], kTargetBitrates[2],
                     &settings->simulcastStream[2], temporal_layer_profile[2]);
-    settings->VP8()->resilience = kResilientStream;
-    settings->VP8()->denoisingOn = true;
-    settings->VP8()->automaticResizeOn = false;
-    settings->VP8()->frameDroppingOn = true;
-    settings->VP8()->keyFrameInterval = 3000;
+    if (codec_type == kVideoCodecVP8) {
+      settings->VP8()->resilience = kResilientStream;
+      settings->VP8()->denoisingOn = true;
+      settings->VP8()->automaticResizeOn = false;
+      settings->VP8()->frameDroppingOn = true;
+      settings->VP8()->keyFrameInterval = 3000;
+    } else {
+      settings->H264()->frameDroppingOn = true;
+      settings->H264()->keyFrameInterval = 3000;
+    }
   }
 
   static void ConfigureStream(int width,
@@ -235,14 +252,16 @@ class TestVp8Simulcast : public ::testing::Test {
     stream->maxBitrate = max_bitrate;
     stream->minBitrate = min_bitrate;
     stream->targetBitrate = target_bitrate;
-    stream->numberOfTemporalLayers = num_temporal_layers;
+    if (num_temporal_layers >= 0) {
+      stream->numberOfTemporalLayers = num_temporal_layers;
+    }
     stream->qpMax = 45;
     stream->active = true;
   }
 
  protected:
-  virtual std::unique_ptr<VP8Encoder> CreateEncoder() = 0;
-  virtual std::unique_ptr<VP8Decoder> CreateDecoder() = 0;
+  virtual std::unique_ptr<VideoEncoder> CreateEncoder() = 0;
+  virtual std::unique_ptr<VideoDecoder> CreateDecoder() = 0;
 
   void SetUp() override {
     encoder_ = CreateEncoder();
@@ -260,7 +279,7 @@ class TestVp8Simulcast : public ::testing::Test {
   void SetUpCodec(const int* temporal_layer_profile) {
     encoder_->RegisterEncodeCompleteCallback(&encoder_callback_);
     decoder_->RegisterDecodeCompleteCallback(&decoder_callback_);
-    DefaultSettings(&settings_, temporal_layer_profile);
+    DefaultSettings(&settings_, temporal_layer_profile, codec_type_);
     SetUpRateAllocator();
     EXPECT_EQ(0, encoder_->InitEncode(&settings_, 1, 1200));
     EXPECT_EQ(0, decoder_->InitDecode(&settings_, 1));
@@ -364,7 +383,7 @@ class TestVp8Simulcast : public ::testing::Test {
   }
 
   void VerifyTemporalIdxAndSyncForAllSpatialLayers(
-      Vp8TestEncodedImageCallback* encoder_callback,
+      TestEncodedImageCallback* encoder_callback,
       const int* expected_temporal_idx,
       const bool* expected_layer_sync,
       int num_spatial_layers) {
@@ -563,7 +582,9 @@ class TestVp8Simulcast : public ::testing::Test {
   void SwitchingToOneStream(int width, int height) {
     // Disable all streams except the last and set the bitrate of the last to
     // 100 kbps. This verifies the way GTP switches to screenshare mode.
-    settings_.VP8()->numberOfTemporalLayers = 1;
+    if (codec_type_ == kVideoCodecVP8) {
+      settings_.VP8()->numberOfTemporalLayers = 1;
+    }
     settings_.maxBitrate = 100;
     settings_.startBitrate = 100;
     settings_.width = width;
@@ -608,7 +629,7 @@ class TestVp8Simulcast : public ::testing::Test {
     EXPECT_EQ(0, encoder_->Encode(*input_frame_, NULL, &frame_types));
 
     // Switch back.
-    DefaultSettings(&settings_, kDefaultTemporalLayerProfile);
+    DefaultSettings(&settings_, kDefaultTemporalLayerProfile, codec_type_);
     // Start at the lowest bitrate for enabling base stream.
     settings_.startBitrate = kMinBitrates[0];
     SetUpRateAllocator();
@@ -633,7 +654,9 @@ class TestVp8Simulcast : public ::testing::Test {
   // 3-3-3 pattern: 3 temporal layers for all spatial streams, so same
   // temporal_layer id and layer_sync is expected for all streams.
   void TestSaptioTemporalLayers333PatternEncoder() {
-    Vp8TestEncodedImageCallback encoder_callback;
+    EXPECT_EQ(codec_type_, kVideoCodecVP8);
+
+    TestEncodedImageCallback encoder_callback;
     encoder_->RegisterEncodeCompleteCallback(&encoder_callback);
     SetRates(kMaxBitrates[2], 30);  // To get all three streams.
 
@@ -700,9 +723,11 @@ class TestVp8Simulcast : public ::testing::Test {
   // Since CodecSpecificInfoVP8.temporalIdx is uint8_t, this will wrap to 255.
   // TODO(marpan): Although this seems safe for now, we should fix this.
   void TestSpatioTemporalLayers321PatternEncoder() {
+    EXPECT_EQ(codec_type_, kVideoCodecVP8);
+
     int temporal_layer_profile[3] = {3, 2, 1};
     SetUpCodec(temporal_layer_profile);
-    Vp8TestEncodedImageCallback encoder_callback;
+    TestEncodedImageCallback encoder_callback;
     encoder_->RegisterEncodeCompleteCallback(&encoder_callback);
     SetRates(kMaxBitrates[2], 30);  // To get all three streams.
 
@@ -758,8 +783,8 @@ class TestVp8Simulcast : public ::testing::Test {
   }
 
   void TestStrideEncodeDecode() {
-    Vp8TestEncodedImageCallback encoder_callback;
-    Vp8TestDecodedImageCallback decoder_callback;
+    TestEncodedImageCallback encoder_callback;
+    TestDecodedImageCallback decoder_callback;
     encoder_->RegisterEncodeCompleteCallback(&encoder_callback);
     decoder_->RegisterDecodeCompleteCallback(&decoder_callback);
 
@@ -799,17 +824,18 @@ class TestVp8Simulcast : public ::testing::Test {
     EXPECT_EQ(2, decoder_callback.DecodedFrames());
   }
 
-  std::unique_ptr<VP8Encoder> encoder_;
+  std::unique_ptr<VideoEncoder> encoder_;
   MockEncodedImageCallback encoder_callback_;
-  std::unique_ptr<VP8Decoder> decoder_;
+  std::unique_ptr<VideoDecoder> decoder_;
   MockDecodedImageCallback decoder_callback_;
   VideoCodec settings_;
   rtc::scoped_refptr<I420Buffer> input_buffer_;
   std::unique_ptr<VideoFrame> input_frame_;
   std::unique_ptr<SimulcastRateAllocator> rate_allocator_;
+  VideoCodecType codec_type_;
 };
 
 }  // namespace testing
 }  // namespace webrtc
 
-#endif  // MODULES_VIDEO_CODING_CODECS_VP8_SIMULCAST_TEST_UTILITY_H_
+#endif  // MODULES_VIDEO_CODING_UTILITY_SIMULCAST_TEST_UTILITY_H_

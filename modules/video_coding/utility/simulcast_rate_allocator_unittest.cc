@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
 
 #include <limits>
 #include <memory>
@@ -73,8 +73,8 @@ class SimulcastRateAllocatorTest : public ::testing::TestWithParam<bool> {
       if (layer_bitrate == 0) {
         EXPECT_FALSE(actual.IsSpatialLayerUsed(i));
       }
-      EXPECT_EQ(expected[i] * 1000U, layer_bitrate) << "Mismatch at index "
-                                                    << i;
+      EXPECT_EQ(expected[i] * 1000U, layer_bitrate)
+          << "Mismatch at index " << i;
       sum += layer_bitrate;
     }
     EXPECT_EQ(sum, actual.get_sum_bps());

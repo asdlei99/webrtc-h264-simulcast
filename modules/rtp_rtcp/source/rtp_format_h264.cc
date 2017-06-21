@@ -92,8 +92,7 @@ RtpPacketizerH264::RtpPacketizerH264(size_t max_payload_len,
   RTC_CHECK_GT(max_payload_len, last_packet_reduction_len);
 }
 
-RtpPacketizerH264::~RtpPacketizerH264() {
-}
+RtpPacketizerH264::~RtpPacketizerH264() {}
 
 RtpPacketizerH264::Fragment::~Fragment() = default;
 
@@ -457,6 +456,7 @@ bool RtpDepacketizerH264::ProcessStapAOrSingleNalu(
   parsed_payload->type.Video.width = 0;
   parsed_payload->type.Video.height = 0;
   parsed_payload->type.Video.codec = kRtpVideoH264;
+  parsed_payload->type.Video.simulcastIdx = 0;
   parsed_payload->type.Video.is_first_packet_in_frame = true;
   RTPVideoHeaderH264* h264_header =
       &parsed_payload->type.Video.codecHeader.H264;
@@ -582,8 +582,8 @@ bool RtpDepacketizerH264::ProcessStapAOrSingleNalu(
         uint32_t pps_id;
         uint32_t sps_id;
         if (PpsParser::ParsePpsIds(&payload_data[start_offset],
-                                    end_offset - start_offset, &pps_id,
-                                    &sps_id)) {
+                                   end_offset - start_offset, &pps_id,
+                                   &sps_id)) {
           nalu.pps_id = pps_id;
           nalu.sps_id = sps_id;
         } else {
@@ -675,6 +675,7 @@ bool RtpDepacketizerH264::ParseFuaNalu(
   parsed_payload->type.Video.width = 0;
   parsed_payload->type.Video.height = 0;
   parsed_payload->type.Video.codec = kRtpVideoH264;
+  parsed_payload->type.Video.simulcastIdx = 0;
   parsed_payload->type.Video.is_first_packet_in_frame = first_fragment;
   RTPVideoHeaderH264* h264 = &parsed_payload->type.Video.codecHeader.H264;
   h264->packetization_type = kH264FuA;

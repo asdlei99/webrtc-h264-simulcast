@@ -14,10 +14,10 @@
 
 #include "api/video/i420_buffer.h"
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "modules/video_coding/include/video_error_codes.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/fakeclock.h"
 #include "test/field_trial.h"
@@ -95,9 +95,7 @@ class VideoEncoderSoftwareFallbackWrapperTest : public ::testing::Test {
       return supports_native_handle_;
     }
 
-    const char* ImplementationName() const override {
-      return "fake-encoder";
-    }
+    const char* ImplementationName() const override { return "fake-encoder"; }
 
     VideoEncoder::ScalingSettings GetScalingSettings() const override {
       return VideoEncoder::ScalingSettings(kLowThreshold, kHighThreshold);

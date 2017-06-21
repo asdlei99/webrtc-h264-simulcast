@@ -15,8 +15,8 @@
 
 #include "api/test/mock_video_encoder_factory.h"
 #include "media/engine/webrtcvideoencoderfactory.h"
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/include/video_codec_interface.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "test/gmock.h"
 #include "test/gtest.h"
 #include "test/video_codec_settings.h"

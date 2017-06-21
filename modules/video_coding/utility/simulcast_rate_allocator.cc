@@ -8,14 +8,14 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/simulcast_rate_allocator.h"
+#include "modules/video_coding/utility/simulcast_rate_allocator.h"
 
 #include <algorithm>
 #include <memory>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "modules/video_coding/codecs/vp8/include/vp8_common_types.h"
+#include "common_types.h"  // NOLINT(build/include)
 #include "rtc_base/checks.h"
 
 namespace webrtc {
@@ -189,7 +189,7 @@ std::vector<uint32_t> SimulcastRateAllocator::DefaultTemporalLayerAllocation(
   std::vector<uint32_t> bitrates;
   for (size_t i = 0; i < num_temporal_layers; ++i) {
     float layer_bitrate =
-        bitrate_kbps * kVp8LayerRateAlloction[num_temporal_layers - 1][i];
+        bitrate_kbps * kLayerRateAlloction[num_temporal_layers - 1][i];
     bitrates.push_back(static_cast<uint32_t>(layer_bitrate + 0.5));
   }
 

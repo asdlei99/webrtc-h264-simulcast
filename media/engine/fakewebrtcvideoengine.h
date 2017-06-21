@@ -13,8 +13,8 @@
 
 #include <map>
 #include <set>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "api/video_codecs/video_decoder.h"
 #include "api/video_codecs/video_encoder.h"
@@ -56,9 +56,7 @@ class FakeWebRtcVideoDecoder : public webrtc::VideoDecoder {
 
   virtual int32_t Release() { return WEBRTC_VIDEO_CODEC_OK; }
 
-  int GetNumFramesReceived() const {
-    return num_frames_received_;
-  }
+  int GetNumFramesReceived() const { return num_frames_received_; }
 
  private:
   int num_frames_received_;
@@ -67,9 +65,7 @@ class FakeWebRtcVideoDecoder : public webrtc::VideoDecoder {
 // Fake class for mocking out WebRtcVideoDecoderFactory.
 class FakeWebRtcVideoDecoderFactory : public WebRtcVideoDecoderFactory {
  public:
-  FakeWebRtcVideoDecoderFactory()
-      : num_created_decoders_(0) {
-  }
+  FakeWebRtcVideoDecoderFactory() : num_created_decoders_(0) {}
 
   virtual webrtc::VideoDecoder* CreateVideoDecoder(
       webrtc::VideoCodecType type) {
@@ -90,9 +86,8 @@ class FakeWebRtcVideoDecoderFactory : public WebRtcVideoDecoderFactory {
   }
 
   virtual void DestroyVideoDecoder(webrtc::VideoDecoder* decoder) {
-    decoders_.erase(
-        std::remove(decoders_.begin(), decoders_.end(), decoder),
-        decoders_.end());
+    decoders_.erase(std::remove(decoders_.begin(), decoders_.end(), decoder),
+                    decoders_.end());
     delete decoder;
   }
 
@@ -100,13 +95,9 @@ class FakeWebRtcVideoDecoderFactory : public WebRtcVideoDecoderFactory {
     supported_codec_types_.insert(type);
   }
 
-  int GetNumCreatedDecoders() {
-    return num_created_decoders_;
-  }
+  int GetNumCreatedDecoders() { return num_created_decoders_; }
 
-  const std::vector<FakeWebRtcVideoDecoder*>& decoders() {
-    return decoders_;
-  }
+  const std::vector<FakeWebRtcVideoDecoder*>& decoders() { return decoders_; }
 
   const std::vector<VideoDecoderParams>& params() { return params_; }
 
@@ -169,7 +160,9 @@ class FakeWebRtcVideoEncoder : public webrtc::VideoEncoder {
     return num_frames_encoded_;
   }
 
- private:
+  const char* ImplementationName() const override { return "fake"; }
+
+ protected:
   rtc::CriticalSection crit_;
   rtc::Event init_encode_event_;
   int num_frames_encoded_ RTC_GUARDED_BY(crit_);
@@ -209,9 +202,8 @@ class FakeWebRtcVideoEncoderFactory : public WebRtcVideoEncoderFactory {
 
   void DestroyVideoEncoder(webrtc::VideoEncoder* encoder) override {
     rtc::CritScope lock(&crit_);
-    encoders_.erase(
-        std::remove(encoders_.begin(), encoders_.end(), encoder),
-        encoders_.end());
+    encoders_.erase(std::remove(encoders_.begin(), encoders_.end(), encoder),
+                    encoders_.end());
     delete encoder;
   }
 
@@ -246,7 +238,7 @@ class FakeWebRtcVideoEncoderFactory : public WebRtcVideoEncoderFactory {
     return encoders_;
   }
 
- private:
+ protected:
   rtc::CriticalSection crit_;
   rtc::Event created_video_encoder_event_;
   std::vector<cricket::VideoCodec> codecs_;

@@ -16,13 +16,13 @@
 #include "common_types.h"  // NOLINT(build/include)
 #include "common_video/include/video_bitrate_allocator.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
 #include "modules/video_coding/encoded_frame.h"
 #include "modules/video_coding/include/video_codec_initializer.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "modules/video_coding/jitter_buffer.h"
 #include "modules/video_coding/packet.h"
 #include "modules/video_coding/timing.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/criticalsection.h"
 #include "rtc_base/thread_checker.h"
 #include "system_wrappers/include/clock.h"
@@ -100,24 +100,27 @@ class VideoCodingModuleImpl : public VideoCodingModule {
     return receiver_time;
   }
 
-  void Process() override {
-    receiver_.Process();
-  }
+  void Process() override { receiver_.Process(); }
 
   int32_t RegisterSendCodec(const VideoCodec* sendCodec,
                             uint32_t numberOfCores,
                             uint32_t maxPayloadSize) override {
-    if (sendCodec != nullptr && sendCodec->codecType == kVideoCodecVP8) {
-      // Set up a rate allocator and temporal layers factory for this vp8
-      // instance. The codec impl will have a raw pointer to the TL factory,
+    if (sendCodec != nullptr && ((sendCodec->codecType == kVideoCodecVP8) ||
+                                 (sendCodec->codecType == kVideoCodecH264))) {
+      // Set up a rate allocator and, if VP8, a temporal layers factory.
+      // The VP8 codec impl will have a raw pointer to the TL factory,
       // and will call it when initializing. Since this can happen
       // asynchronously keep the instance alive until destruction or until a
-      // new send codec is registered.
-      VideoCodec vp8_codec = *sendCodec;
-      rate_allocator_ =
-          VideoCodecInitializer::CreateBitrateAllocator(vp8_codec);
-      return sender_.RegisterSendCodec(&vp8_codec, numberOfCores,
-                                       maxPayloadSize);
+      // new send codec is registered. The H264 codec impl is not aware of the
+      // TL factory and will be safely ignored in the rate allocator.
+      VideoCodec codec = *sendCodec;
+      std::unique_ptr<TemporalLayersFactory> tl_factory(
+          new TemporalLayersFactory());
+      if (sendCodec->codecType == kVideoCodecVP8) {
+        codec.VP8()->tl_factory = tl_factory.get();
+      }
+      rate_allocator_ = VideoCodecInitializer::CreateBitrateAllocator(codec);
+      return sender_.RegisterSendCodec(&codec, numberOfCores, maxPayloadSize);
     }
     return sender_.RegisterSendCodec(sendCodec, numberOfCores, maxPayloadSize);
   }
@@ -125,8 +128,7 @@ class VideoCodingModuleImpl : public VideoCodingModule {
   int32_t RegisterExternalEncoder(VideoEncoder* externalEncoder,
                                   uint8_t /* payloadType */,
                                   bool internalSource) override {
-    sender_.RegisterExternalEncoder(externalEncoder,
-                                    internalSource);
+    sender_.RegisterExternalEncoder(externalEncoder, internalSource);
     return 0;
   }
 
@@ -218,7 +220,6 @@ class VideoCodingModuleImpl : public VideoCodingModule {
 }  // namespace
 
 // DEPRECATED.  Create method for current interface, will be removed when the
-// new jitter buffer is in place.
 VideoCodingModule* VideoCodingModule::Create(Clock* clock,
                                              EventFactory* event_factory) {
   RTC_DCHECK(clock);

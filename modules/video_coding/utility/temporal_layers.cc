@@ -7,7 +7,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/video_coding/codecs/vp8/temporal_layers.h"
+#include "modules/video_coding/utility/temporal_layers.h"
 
 #include <algorithm>
 #include <memory>
@@ -15,10 +15,9 @@
 #include <vector>
 
 #include "modules/include/module_common_types.h"
-#include "modules/video_coding/codecs/vp8/default_temporal_layers.h"
-#include "modules/video_coding/codecs/vp8/include/vp8_common_types.h"
-#include "modules/video_coding/codecs/vp8/screenshare_layers.h"
 #include "modules/video_coding/include/video_codec_interface.h"
+#include "modules/video_coding/utility/default_temporal_layers.h"
+#include "modules/video_coding/utility/screenshare_layers.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
 #include "rtc_base/ptr_util.h"
