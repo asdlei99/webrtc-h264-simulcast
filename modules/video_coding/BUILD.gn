@@ -250,6 +250,8 @@ rtc_source_set("video_coding_utility") {
     "../../rtc_base:rtc_task_queue",
     "../../rtc_base:sequenced_task_checker",
     "../../system_wrappers",
+    "../../system_wrappers:field_trial_api",
+    "../../system_wrappers:metrics_api",
     "../rtp_rtcp:rtp_rtcp_format",
   ]
 }
@@ -542,6 +544,7 @@ if (rtc_include_tests) {
       ":mock_headers",
       ":video_codec_interface",
       ":video_coding",
+      ":video_coding_utility",
       ":webrtc_vp8_helpers",
       "../../api:video_frame_api",
       "../../api:video_frame_api_i420",
@@ -732,7 +735,6 @@ if (rtc_include_tests) {
       "utility/quality_scaler_unittest.cc",
       "utility/screenshare_layers_unittest.cc",
       "utility/simulcast_rate_allocator_unittest.cc",
-      "utility/simulcast_unittest.h",
       "video_codec_initializer_unittest.cc",
       "video_packet_buffer_unittest.cc",
       "video_receiver_unittest.cc",
