@@ -18,6 +18,12 @@ class TestH264Simulcast : public TestSimulcast {
  public:
   TestH264Simulcast() : TestSimulcast(kVideoCodecH264) {}
 
+  void SetUp() override {
+    encoder_ = CreateEncoder();
+    decoder_ = CreateDecoder();
+    SetUpCodec(kNoTemporalLayerProfile);
+  }
+
  protected:
   std::unique_ptr<VideoEncoder> CreateEncoder() override {
     return H264Encoder::Create(cricket::VideoCodec("H264"));
@@ -72,7 +78,8 @@ TEST_F(TestH264Simulcast, TestSwitchingToOneOddStream) {
 }
 
 TEST_F(TestH264Simulcast, TestSwitchingToOneSmallStream) {
-  TestSimulcast::TestSwitchingToOneSmallStream();
+  // H264 has min width and height of 16 pixels.
+  TestSimulcast::SwitchingToOneStream(16, 16);
 }
 
 TEST_F(TestH264Simulcast, TestStrideEncodeDecode) {

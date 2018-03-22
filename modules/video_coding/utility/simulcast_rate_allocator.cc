@@ -238,9 +238,61 @@ const VideoCodec& webrtc::SimulcastRateAllocator::GetCodec() const {
 
 int SimulcastRateAllocator::NumTemporalStreams(size_t simulcast_id) const {
   return std::max<uint8_t>(
-      1, codec_.numberOfSimulcastStreams == 0
-             ? codec_.VP8().numberOfTemporalLayers
-             : codec_.simulcastStream[simulcast_id].numberOfTemporalLayers);
+      1,
+      codec_.codecType == kVideoCodecVP8 && codec_.numberOfSimulcastStreams == 0
+          ? codec_.VP8().numberOfTemporalLayers
+          : codec_.simulcastStream[simulcast_id].numberOfTemporalLayers);
+}
+
+uint32_t SimulcastRateAllocator::SumStreamMaxBitrate(int streams,
+                                                     const VideoCodec& codec) {
+  uint32_t bitrate_sum = 0;
+  for (int i = 0; i < streams; ++i) {
+    bitrate_sum += codec.simulcastStream[i].maxBitrate;
+  }
+  return bitrate_sum;
+}
+
+int SimulcastRateAllocator::NumberOfStreams(const VideoCodec& codec) {
+  int streams =
+      codec.numberOfSimulcastStreams < 1 ? 1 : codec.numberOfSimulcastStreams;
+  uint32_t simulcast_max_bitrate = SumStreamMaxBitrate(streams, codec);
+  if (simulcast_max_bitrate == 0) {
+    streams = 1;
+  }
+  return streams;
+}
+
+bool SimulcastRateAllocator::ValidSimulcastResolutions(const VideoCodec& codec,
+                                                       int num_streams) {
+  if (codec.width != codec.simulcastStream[num_streams - 1].width ||
+      codec.height != codec.simulcastStream[num_streams - 1].height) {
+    return false;
+  }
+  for (int i = 0; i < num_streams; ++i) {
+    if (codec.width * codec.simulcastStream[i].height !=
+        codec.height * codec.simulcastStream[i].width) {
+      return false;
+    }
+  }
+  for (int i = 1; i < num_streams; ++i) {
+    if (codec.simulcastStream[i].width !=
+        codec.simulcastStream[i - 1].width * 2) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool SimulcastRateAllocator::ValidSimulcastTemporalLayers(
+    const VideoCodec& codec,
+    int num_streams) {
+  for (int i = 0; i < num_streams - 1; ++i) {
+    if (codec.simulcastStream[i].numberOfTemporalLayers !=
+        codec.simulcastStream[i + 1].numberOfTemporalLayers)
+      return false;
+  }
+  return true;
 }
 
 }  // namespace webrtc

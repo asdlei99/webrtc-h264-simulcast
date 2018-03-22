@@ -329,7 +329,6 @@ void VideoProcessorIntegrationTest::CreateEncoderAndDecoder() {
 
   const SdpVideoFormat format = config_.ToSdpVideoFormat();
   if (config_.simulcast_adapted_encoder) {
-    EXPECT_EQ("VP8", format.name);
     encoder_.reset(new SimulcastEncoderAdapter(encoder_factory_.get()));
   } else {
     encoder_ = encoder_factory_->CreateVideoEncoder(format);

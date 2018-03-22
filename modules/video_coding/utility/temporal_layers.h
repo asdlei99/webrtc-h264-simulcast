@@ -135,13 +135,16 @@ class TemporalLayers {
   virtual uint8_t Tl0PicIdx() const = 0;
 };
 
-// upstream usage is gone.
+// TODO(webrtc:9012): Remove TemporalLayersFactory type and field once all
 class TemporalLayersFactory {
  public:
   TemporalLayersFactory() = default;
   virtual ~TemporalLayersFactory() = default;
 };
 
+// Used only inside RTC_DCHECK(). It checks correctness of temporal layers
+// dependencies and sync bits. The only method of this class is called after
+// each UpdateLayersConfig() of a corresponding TemporalLayers class.
 class TemporalLayersChecker {
  public:
   TemporalLayersChecker(int num_temporal_layers, uint8_t initial_tl0_pic_idx);

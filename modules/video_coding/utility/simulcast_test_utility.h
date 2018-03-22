@@ -45,6 +45,7 @@ const int kMaxBitrates[kNumberOfSimulcastStreams] = {150, 600, 1200};
 const int kMinBitrates[kNumberOfSimulcastStreams] = {50, 150, 600};
 const int kTargetBitrates[kNumberOfSimulcastStreams] = {100, 450, 1000};
 const int kDefaultTemporalLayerProfile[3] = {3, 3, 3};
+const int kNoTemporalLayerProfile[3] = {0, 0, 0};
 
 template <typename T>
 void SetExpectedValues3(T value0, T value1, T value2, T* expected_values) {
@@ -80,7 +81,7 @@ class TestEncodedImageCallback : public EncodedImageCallback {
     if (is_vp8) {
       simulcast_idx = codec_specific_info->codecSpecific.VP8.simulcastIdx;
     } else {
-      simulcast_idx = codec_specific_info->codecSpecific.H264.simulcastIdx;
+      simulcast_idx = codec_specific_info->codecSpecific.H264.simulcast_idx;
     }
 
     // Only store the base layer.
@@ -580,10 +581,14 @@ class TestSimulcast : public ::testing::Test {
   }
 
   void SwitchingToOneStream(int width, int height) {
+    const int* temporal_layer_profile = nullptr;
     // Disable all streams except the last and set the bitrate of the last to
     // 100 kbps. This verifies the way GTP switches to screenshare mode.
     if (codec_type_ == kVideoCodecVP8) {
       settings_.VP8()->numberOfTemporalLayers = 1;
+      temporal_layer_profile = kDefaultTemporalLayerProfile;
+    } else {
+      temporal_layer_profile = kNoTemporalLayerProfile;
     }
     settings_.maxBitrate = 100;
     settings_.startBitrate = 100;
@@ -629,7 +634,7 @@ class TestSimulcast : public ::testing::Test {
     EXPECT_EQ(0, encoder_->Encode(*input_frame_, NULL, &frame_types));
 
     // Switch back.
-    DefaultSettings(&settings_, kDefaultTemporalLayerProfile, codec_type_);
+    DefaultSettings(&settings_, temporal_layer_profile, codec_type_);
     // Start at the lowest bitrate for enabling base stream.
     settings_.startBitrate = kMinBitrates[0];
     SetUpRateAllocator();

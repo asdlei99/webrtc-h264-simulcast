@@ -145,8 +145,8 @@ class VideoStreamEncoder::EncodeTask : public rtc::QueuedTask {
 };
 
 // VideoSourceProxy is responsible ensuring thread safety between calls to
-// ViEEncoder::SetSource that will happen on libjingle's worker thread when a
-// video capturer is connected to the encoder and the encoder task queue
+// VideoStreamEncoder::SetSource that will happen on libjingle's worker thread
+// when a video capturer is connected to the encoder and the encoder task queue
 // (encoder_queue_) where the encoder reports its VideoSinkWants.
 class VideoStreamEncoder::VideoSourceProxy {
  public:

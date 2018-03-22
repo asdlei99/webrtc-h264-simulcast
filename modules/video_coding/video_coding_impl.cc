@@ -107,18 +107,12 @@ class VideoCodingModuleImpl : public VideoCodingModule {
                             uint32_t maxPayloadSize) override {
     if (sendCodec != nullptr && ((sendCodec->codecType == kVideoCodecVP8) ||
                                  (sendCodec->codecType == kVideoCodecH264))) {
-      // Set up a rate allocator and, if VP8, a temporal layers factory.
-      // The VP8 codec impl will have a raw pointer to the TL factory,
+      // Set up a rate allocator and temporal layers factory for this codec
+      // instance. The codec impl will have a raw pointer to the TL factory,
       // and will call it when initializing. Since this can happen
       // asynchronously keep the instance alive until destruction or until a
-      // new send codec is registered. The H264 codec impl is not aware of the
-      // TL factory and will be safely ignored in the rate allocator.
+      // new send codec is registered.
       VideoCodec codec = *sendCodec;
-      std::unique_ptr<TemporalLayersFactory> tl_factory(
-          new TemporalLayersFactory());
-      if (sendCodec->codecType == kVideoCodecVP8) {
-        codec.VP8()->tl_factory = tl_factory.get();
-      }
       rate_allocator_ = VideoCodecInitializer::CreateBitrateAllocator(codec);
       return sender_.RegisterSendCodec(&codec, numberOfCores, maxPayloadSize);
     }
@@ -220,6 +214,7 @@ class VideoCodingModuleImpl : public VideoCodingModule {
 }  // namespace
 
 // DEPRECATED.  Create method for current interface, will be removed when the
+// new jitter buffer is in place.
 VideoCodingModule* VideoCodingModule::Create(Clock* clock,
                                              EventFactory* event_factory) {
   RTC_DCHECK(clock);

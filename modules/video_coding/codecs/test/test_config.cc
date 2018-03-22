@@ -113,8 +113,9 @@ void TestConfig::SetCodecSettings(VideoCodecType codec_type,
   RTC_CHECK(num_temporal_layers >= 1 &&
             num_temporal_layers <= kMaxTemporalStreams);
 
-  // Simulcast is only available with VP8.
-  RTC_CHECK(num_simulcast_streams < 2 || codec_type == kVideoCodecVP8);
+  // Simulcast is only available with VP8 or H264.
+  RTC_CHECK(num_simulcast_streams < 2 || codec_type == kVideoCodecVP8 ||
+            codec_type == kVideoCodecH264);
 
   // Spatial scalability is only available with VP9.
   RTC_CHECK(num_spatial_layers < 2 || codec_type == kVideoCodecVP9);

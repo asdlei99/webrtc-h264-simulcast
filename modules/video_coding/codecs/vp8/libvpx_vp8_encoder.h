@@ -1,14 +1,13 @@
 /*
- *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
  *  tree. An additional intellectual property rights grant can be found
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
- *
- * WEBRTC VP8 wrapper interface
  */
+
 #ifndef MODULES_VIDEO_CODING_CODECS_VP8_LIBVPX_VP8_ENCODER_H_
 #define MODULES_VIDEO_CODING_CODECS_VP8_LIBVPX_VP8_ENCODER_H_
 
@@ -22,7 +21,7 @@
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "modules/video_coding/utility/temporal_layers.h"
-// NOTE: This include order must remain to avoid compile errors, even though
+
 #include "vpx/vp8cx.h"
 #include "vpx/vpx_encoder.h"
 

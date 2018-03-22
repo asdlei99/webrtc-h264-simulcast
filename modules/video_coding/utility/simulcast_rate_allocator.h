@@ -33,6 +33,13 @@ class SimulcastRateAllocator : public VideoBitrateAllocator {
   uint32_t GetPreferredBitrateBps(uint32_t framerate) override;
   const VideoCodec& GetCodec() const;
 
+  static uint32_t SumStreamMaxBitrate(int streams, const VideoCodec& codec);
+  static int NumberOfStreams(const VideoCodec& codec);
+  static bool ValidSimulcastResolutions(const VideoCodec& codec,
+                                        int num_streams);
+  static bool ValidSimulcastTemporalLayers(const VideoCodec& codec,
+                                           int num_streams);
+
  private:
   void DistributeAllocationToSimulcastLayers(
       uint32_t total_bitrate_bps,

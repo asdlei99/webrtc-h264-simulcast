@@ -386,6 +386,8 @@ void DefaultTemporalLayers::PopulateCodecSpecific(
   }
 }
 
+// Returns list of temporal dependencies for each frame in the temporal pattern.
+// Values are lists of indecies in the pattern.
 std::vector<std::set<uint8_t>> GetTemporalDependencies(
     int num_temporal_layers) {
   switch (num_temporal_layers) {

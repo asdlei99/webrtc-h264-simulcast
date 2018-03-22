@@ -435,7 +435,7 @@ EncodedImageCallback::Result SimulcastEncoderAdapter::OnEncodedImage(
   if (stream_codec_specific.codecType == webrtc::kVideoCodecVP8) {
     stream_codec_specific.codecSpecific.VP8.simulcastIdx = stream_idx;
   } else if (stream_codec_specific.codecType == webrtc::kVideoCodecH264) {
-    stream_codec_specific.codecSpecific.H264.simulcastIdx = stream_idx;
+    stream_codec_specific.codecSpecific.H264.simulcast_idx = stream_idx;
   }
 
   return encoded_complete_callback_->OnEncodedImage(

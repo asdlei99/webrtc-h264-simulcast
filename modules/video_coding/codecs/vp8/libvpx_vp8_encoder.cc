@@ -23,12 +23,13 @@
 #include "system_wrappers/include/field_trial.h"
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
-// NOTE(ajm): Path provided by gyp.
+
 namespace webrtc {
 namespace {
 const char kVp8GfBoostFieldTrial[] = "WebRTC-VP8-GfBoost";
 
-// VP8 denoiser states.
+// QP is obtained from VP8-bitstream for HW, so the QP corresponds to the
+// bitstream range of [0, 127] and not the user-level range of [0,63].
 constexpr int kLowVp8QpThreshold = 29;
 constexpr int kHighVp8QpThreshold = 95;
 
@@ -47,7 +48,7 @@ enum denoiserState {
 };
 
 // Greatest common divisior
-int GCD(int a, int b) {
+static int GCD(int a, int b) {
   int c = a % b;
   while (c != 0) {
     a = b;
@@ -55,53 +56,6 @@ int GCD(int a, int b) {
     c = a % b;
   }
   return b;
-}
-
-uint32_t SumStreamMaxBitrate(int streams, const VideoCodec& codec) {
-  uint32_t bitrate_sum = 0;
-  for (int i = 0; i < streams; ++i) {
-    bitrate_sum += codec.simulcastStream[i].maxBitrate;
-  }
-  return bitrate_sum;
-}
-
-int NumberOfStreams(const VideoCodec& codec) {
-  int streams =
-      codec.numberOfSimulcastStreams < 1 ? 1 : codec.numberOfSimulcastStreams;
-  uint32_t simulcast_max_bitrate = SumStreamMaxBitrate(streams, codec);
-  if (simulcast_max_bitrate == 0) {
-    streams = 1;
-  }
-  return streams;
-}
-
-bool ValidSimulcastResolutions(const VideoCodec& codec, int num_streams) {
-  if (codec.width != codec.simulcastStream[num_streams - 1].width ||
-      codec.height != codec.simulcastStream[num_streams - 1].height) {
-    return false;
-  }
-  for (int i = 0; i < num_streams; ++i) {
-    if (codec.width * codec.simulcastStream[i].height !=
-        codec.height * codec.simulcastStream[i].width) {
-      return false;
-    }
-  }
-  for (int i = 1; i < num_streams; ++i) {
-    if (codec.simulcastStream[i].width !=
-        codec.simulcastStream[i - 1].width * 2) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool ValidSimulcastTemporalLayers(const VideoCodec& codec, int num_streams) {
-  for (int i = 0; i < num_streams - 1; ++i) {
-    if (codec.simulcastStream[i].numberOfTemporalLayers !=
-        codec.simulcastStream[i + 1].numberOfTemporalLayers)
-      return false;
-  }
-  return true;
 }
 
 bool GetGfBoostPercentageFromFieldTrialGroup(int* boost_percentage) {
@@ -378,12 +332,13 @@ int LibvpxVp8Encoder::InitEncode(const VideoCodec* inst,
     return retVal;
   }
 
-  int number_of_streams = NumberOfStreams(*inst);
+  int number_of_streams = SimulcastRateAllocator::NumberOfStreams(*inst);
   bool doing_simulcast = (number_of_streams > 1);
 
-  if (doing_simulcast &&
-      (!ValidSimulcastResolutions(*inst, number_of_streams) ||
-       !ValidSimulcastTemporalLayers(*inst, number_of_streams))) {
+  if (doing_simulcast && (!SimulcastRateAllocator::ValidSimulcastResolutions(
+                              *inst, number_of_streams) ||
+                          !SimulcastRateAllocator::ValidSimulcastTemporalLayers(
+                              *inst, number_of_streams))) {
     return WEBRTC_VIDEO_CODEC_ERR_SIMULCAST_PARAMETERS_NOT_SUPPORTED;
   }
 
@@ -834,8 +789,8 @@ int LibvpxVp8Encoder::Encode(const VideoFrame& frame,
 
   int error = WEBRTC_VIDEO_CODEC_OK;
   int num_tries = 0;
-  // Note we must pass 0 for |flags| field in encode call below since they are
-  // set above in |vpx_codec_control| function for each encoder/spatial layer.
+  // If the first try returns WEBRTC_VIDEO_CODEC_TARGET_BITRATE_OVERSHOOT
+  // the frame must be reencoded with the same parameters again because
   // target bitrate is exceeded and encoder state has been reset.
   while (num_tries == 0 ||
          (num_tries == 1 &&

@@ -20,6 +20,7 @@
 #include "modules/video_coding/utility/temporal_layers.h"
 #include "rtc_base/basictypes.h"
 #include "rtc_base/logging.h"
+#include "rtc_base/system/fallthrough.h"
 #include "system_wrappers/include/clock.h"
 
 namespace webrtc {
@@ -55,11 +56,10 @@ VideoCodecInitializer::CreateBitrateAllocator(const VideoCodec& codec) {
 
   switch (codec.codecType) {
     case kVideoCodecVP8:
-    // Intentionally fall-through
-    case kVideoCodecH264: {
-      // Set up default VP8 temporal layer factory, if not provided.
+      RTC_FALLTHROUGH();
+    case kVideoCodecH264:
       rate_allocator.reset(new SimulcastRateAllocator(codec));
-    } break;
+      break;
     default:
       rate_allocator.reset(new DefaultVideoBitrateAllocator(codec));
   }
